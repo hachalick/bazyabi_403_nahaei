@@ -158,24 +158,24 @@ class Main:
         new_dict = {}
         for i in arr_sort:
             for j in dict_token_no_sort:
-                if out_of == -1 and dict_token_no_sort[j] == i:
+                if out_of < 0 and dict_token_no_sort[j] == i:
                     new_dict[j] = i
                 elif out_of >= i and dict_token_no_sort[j] == i:
                     new_dict[j] = i
         return new_dict
 
-    def read_all_row(self) -> list:
+    def read_all_row(self) -> str:
+        text = ""
         with open('train.csv') as csv_file:
             csv_reader = csv.reader(csv_file)
             iter = 0
-            textA = ""
             for row in csv_reader:
-                textA += " ".join(row) + " "
+                text += " ".join(row) + " "
                 if iter == self.number_of_row:
                     break
                 iter = iter + 1
-            text = " ".join(textA.split("-"))
-        return text[1:]
+            text = " ".join(text.split("-"))
+        return text
 
     def read_title_and_plot(self) -> list:
         arr = []
@@ -199,24 +199,43 @@ class Main:
             list_dynamic[i]["plot"] = token_plot_clean
         return list_dynamic
 
-    def posting_title_and_plot(self, list_dynamic: list) -> list:
-        new_list_title = []
+    def posting_title_and_plot(self, list_dynamic: list) -> dict:
+        all_list_title = []
+        all_list_plot = []
         for i in range(len(list_dynamic)):
-            print(list_dynamic[i]["title"])
-            new_list_title = new_list_title + list_dynamic[i]["title"]
-        new_list_title = list(dict.fromkeys(new_list_title))
+            all_list_title = all_list_title + list_dynamic[i]["title"]
+        for i in range(len(list_dynamic)):
+            all_list_plot = all_list_plot + list_dynamic[i]["plot"]
+        all_list_title = list(dict.fromkeys(all_list_title))
+        all_list_plot = list(dict.fromkeys(all_list_plot))
+        all_list_title.sort()
+        all_list_plot.sort()
+        all_list_words = all_list_plot + all_list_title
+        all_list_words = list(dict.fromkeys(all_list_words))
+        all_dict_words = {}
+        for i in all_list_words:
+            all_dict_words[i] = {"frequency": 0, "title": [], "plot": []}
+        for i in range(len(list_dynamic)):
+            for j in range(len(list_dynamic[i]["title"])):
+                all_dict_words[list_dynamic[i]["title"][j]]["title"].append({i: j})
+        for i in range(len(list_dynamic)):
+            for j in range(len(list_dynamic[i]["plot"])):
+                all_dict_words[list_dynamic[i]["plot"][j]]["plot"].append({i: j})
+        for i in all_dict_words:
+            all_dict_words[i]["frequency"] = len(all_dict_words[i]["title"]) + len(all_dict_words[i]["plot"])
+        return all_dict_words
 
 
-mainM = Main(50)
-# text_all = mainM.read_all_row()
-# list_token = mainM.tokenizer(text_all)
-# list_clean_token = mainM.clean_word(list_token)
-# dict_token = mainM.generate_stopwords(list_clean_token)
-# list_rank = mainM.add_value_to_list(dict_token)
-# sorted_dict = mainM.sort_dict(dict_token, list_rank, 800)
-a = mainM.read_title_and_plot()
-list_tokenize_title_and_plot = mainM.tokenize_title_and_plot(a)
-mainM.posting_title_and_plot(list_tokenize_title_and_plot)
-# print(a)
-# [{title: [tokens], plot: [tokens]}, . . .]
-# { word: [{title: [index ...]}]
+mainM = Main(3)
+text_all_file = mainM.read_all_row()
+list_token = mainM.tokenizer(text_all_file)
+list_clean_token = mainM.clean_word(list_token)
+print("answer 1:\n", list_clean_token, "\n")
+dict_token = mainM.generate_stopwords(list_clean_token)
+list_rank = mainM.add_value_to_list(dict_token)
+sorted_dict = mainM.sort_dict(dict_token, list_rank, 55)
+print("answer 2:\n", sorted_dict, "\n")
+text_title_and_plot = mainM.read_title_and_plot()
+list_tokenize_title_and_plot = mainM.tokenize_title_and_plot(text_title_and_plot)
+posting_title_and_plot = mainM.posting_title_and_plot(list_tokenize_title_and_plot)
+print("answer 3:\n", posting_title_and_plot, "\n")
