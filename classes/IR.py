@@ -2,7 +2,7 @@ import nltk
 import csv
 import re
 
-from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet as wn
 
 
@@ -185,24 +185,35 @@ class IRS:
             csv_reader = csv.reader(csv_file)
             iter = 0
             for row in csv_reader:
-                text += " ".join(row) + " "
-                if iter == self.number_of_row:
-                    break
+                if iter > 0:
+                    text += " ".join(row) + " "
+                    if iter == self.number_of_row + 1:
+                        break
                 iter = iter + 1
             text = " ".join(text.split("-"))
         return text
 
-    def read_title_and_plot(self) -> list:
+    def read_title_and_plot(self, arr_of_exception: list = None) -> list:
         arr = []
         with open('train.csv') as csv_file:
             csv_reader = csv.reader(csv_file)
             iter = 0
-            for row in csv_reader:
-                arr.append({"title": row[0], "plot": row[1]})
-                if iter == self.number_of_row:
-                    break
-                iter += 1
-        return arr[1:]
+            if arr_of_exception is None:
+                for row in csv_reader:
+                    arr.append({"id": iter-1, "title": row[0], "plot": row[1]})
+                    if iter == self.number_of_row:
+                        break
+                    iter += 1
+                arr = arr[1:]
+            else:
+                for row in csv_reader:
+                    if iter-1 not in arr_of_exception or len(arr_of_exception) == 0:
+                        arr.append({"id": iter-1, "title": row[0], "plot": row[1]})
+                    if iter == self.number_of_row:
+                        break
+                    iter += 1
+                arr = arr[1:]
+            return arr
 
     def tokenize_title_and_plot(self, list_dynamic: list) -> list:
         for i in range(len(list_dynamic)):
@@ -227,15 +238,75 @@ class IRS:
         all_list_plot.sort()
         all_list_words = all_list_plot + all_list_title
         all_list_words = list(dict.fromkeys(all_list_words))
+        all_list_words.sort()
         all_dict_words = {}
         for i in all_list_words:
             all_dict_words[i] = {"frequency": 0, "title": [], "plot": []}
         for i in range(len(list_dynamic)):
             for j in range(len(list_dynamic[i]["title"])):
-                all_dict_words[list_dynamic[i]["title"][j]]["title"].append({i: j})
+                all_dict_words[list_dynamic[i]["title"][j]]["title"].append({list_dynamic[i]["id"]: j})
         for i in range(len(list_dynamic)):
             for j in range(len(list_dynamic[i]["plot"])):
-                all_dict_words[list_dynamic[i]["plot"][j]]["plot"].append({i: j})
+                all_dict_words[list_dynamic[i]["plot"][j]]["plot"].append({list_dynamic[i]["id"]: j})
         for i in all_dict_words:
             all_dict_words[i]["frequency"] = len(all_dict_words[i]["title"]) + len(all_dict_words[i]["plot"])
         return all_dict_words
+
+    def edit_read_title_and_plot(self):
+        arr_of_indexes = [i for i in range(self.number_of_row)]
+        arr_adding_indexes = []
+        arr_deleting_indexes = []
+        print("""\033[93mfor ending process positional living type "\033[4mexit()\033[0m\033[93m" and enter\033[0m
+                \r\033[95m1. add format:\033[0m
+                \rid, title, plot
+                \r\033[92m(exam:1, dars bazyabi etelaat, darsi shirin ke imani mehr tadris karde)\033[0m\n
+                \r\033[95m2. delete format:\033[0m
+                \rid
+                \r\033[92m(exam:1)\033[0m\n""")
+        while True:
+            print(arr_of_indexes)
+            input_text = input("enter => ")
+            print("\033[93m#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#\033[0m")
+            if input_text == "exit()":
+                print("\033[91mprocess positional ended\033[0m")
+                break
+            text_list = input_text.split(',')
+            # print(text_list)
+            if not (len(text_list) == 3 or len(text_list) == 1):
+                print("\033[91mformat input not correct\033[0m")
+            for i in range(len(text_list)):
+                text_list[i] = text_list[i].strip()
+            try:
+                int(text_list[0])
+            except ValueError:
+                print("\033[91mid should be integer\033[0m")
+                continue
+            id_dataset = int(text_list[0])
+            if len(text_list) == 1:
+                if id_dataset in arr_of_indexes:
+                    for i in range(len(arr_of_indexes)):
+                        if arr_of_indexes[i] == id_dataset:
+                            del arr_of_indexes[i]
+                            arr_deleting_indexes.append(i)
+                            print("deleted", i)
+                            break
+                else:
+                    print("not delete")
+            elif len(text_list) == 3:
+                if id_dataset not in arr_of_indexes:
+                    title_dataset = text_list[1]
+                    plot_title = text_list[2]
+                    arr_of_indexes.append(id_dataset)
+                    arr_of_indexes.sort()
+                    arr_adding_indexes.append({"id": id_dataset, "title": title_dataset, "plot": plot_title})
+                    print("add: id =", id_dataset, " title =", title_dataset, " plot =", plot_title)
+                else:
+                    print("not add")
+        for i in range(len(arr_adding_indexes)):
+            for j in range(len(arr_deleting_indexes)):
+                if arr_adding_indexes[i]["id"] == arr_deleting_indexes[j]:
+                    del arr_adding_indexes[i]
+                    del arr_deleting_indexes[j]
+        com_arr = self.read_title_and_plot(arr_deleting_indexes) + arr_adding_indexes
+        return com_arr
+
