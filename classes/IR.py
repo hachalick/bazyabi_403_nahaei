@@ -39,7 +39,7 @@ class IRS:
         lemAdjS = lemmatizer.lemmatize(word, pos=wn.ADJ_SAT)
         if len(res_word) > 0:
             word_lem = res_word.pop()
-            print(f"{pos_wod}\nw {word}\n{wn.NOUN} {lemNoun}\n{wn.VERB} {lemVerb}\n{wn.ADJ} {lemAdj}\n{wn.ADV} {lemAdv}\n{wn.ADJ_SAT} {lemAdjS}\n")
+            # print(f"{pos_wod}\nw {word}\n{wn.NOUN} {lemNoun}\n{wn.VERB} {lemVerb}\n{wn.ADJ} {lemAdj}\n{wn.ADV} {lemAdv}\n{wn.ADJ_SAT} {lemAdjS}\n")
             if (lemNoun != lemVerb
                     or (lemNoun == lemVerb
                         and lemVerb == lemAdj
