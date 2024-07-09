@@ -321,11 +321,6 @@ class IRS:
                     print("add: id =", id_dataset, " title =", title_dataset, " plot =", plot_title)
                 else:
                     print("not add")
-        for i in range(len(arr_adding_indexes)):
-            for j in range(len(arr_deleting_indexes)):
-                if arr_adding_indexes[i]["id"] == arr_deleting_indexes[j]:
-                    del arr_adding_indexes[i]
-                    del arr_deleting_indexes[j]
         com_arr = self.read_title_and_plot(arr_deleting_indexes) + arr_adding_indexes
         return com_arr
 
