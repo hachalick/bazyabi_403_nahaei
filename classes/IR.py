@@ -5,12 +5,13 @@ import re
 from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet as wn
 
-
 # nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger')
 
 
 class IRS:
+    stemmer = nltk.stem.PorterStemmer()
+
     def __init__(self, number_of_row):
         self.number_of_row = number_of_row
 
@@ -28,17 +29,29 @@ class IRS:
             return wn.NOUN
 
     def __lemmatization_word(self, word: str) -> str:
-        res_word = wn._morphy(word, self.__detected_word(word))
+        pos_wod = self.__detected_word(word)
+        res_word = wn._morphy(word, pos_wod)
+        lemmatizer = nltk.stem.WordNetLemmatizer()
+        lemNoun = lemmatizer.lemmatize(word, pos=wn.NOUN)
+        lemVerb = lemmatizer.lemmatize(word, pos=wn.VERB)
+        lemAdj = lemmatizer.lemmatize(word, pos=wn.ADJ)
+        lemAdv = lemmatizer.lemmatize(word, pos=wn.ADV)
+        lemAdjS = lemmatizer.lemmatize(word, pos=wn.ADJ_SAT)
         if len(res_word) > 0:
-            return res_word.pop()
+            word_lem = res_word.pop()
+            print(f"{pos_wod}\nw {word}\n{wn.NOUN} {lemNoun}\n{wn.VERB} {lemVerb}\n{wn.ADJ} {lemAdj}\n{wn.ADV} {lemAdv}\n{wn.ADJ_SAT} {lemAdjS}\n")
+            if (lemNoun != lemVerb
+                    or (lemNoun == lemVerb
+                        and lemVerb == lemAdj
+                        and lemAdv == lemAdv)
+                    and not re.match(""".*le$""", word_lem)):
+                return self.stemmer.stem(word_lem)
+            elif word_lem == word and pos_wod == wn.NOUN and re.match(""".*ing$""", word_lem):
+                return self.stemmer.stem(word_lem)
+            else:
+                return word_lem
         else:
             return word
-        # lemmatizer = nltk.stem.WordNetLemmatizer()
-        # lemNoun = lemmatizer.lemmatize(wt[i], pos=wn.NOUN)
-        # lemVerb = lemmatizer.lemmatize(wt[i], pos=wn.VERB)
-        # lemAdj = lemmatizer.lemmatize(wt[i], pos=wn.ADJ)
-        # lemAdv = lemmatizer.lemmatize(wt[i], pos=wn.ADV)
-        # lemAdjS = lemmatizer.lemmatize(wt[i], pos=wn.ADJ_SAT)
 
     def tokenizer(self, main_text: str) -> list:
         wt = word_tokenize(main_text)
@@ -73,6 +86,7 @@ class IRS:
             if wt[i].startswith("'") and wt[i][1:].isalnum():
                 wt[i] = wt[i][1:]
             wt[i] = self.__lemmatization_word(wt[i])
+        wt.sort()
         return wt
 
     def clean_word(self, arr: list) -> list:
@@ -145,10 +159,10 @@ class IRS:
                     arr_delete.append(i)
                 case "\'\'":
                     arr_delete.append(i)
-        iter = 0
+        ite = 0
         for i in arr_delete:
-            del arr[i - iter]
-            iter += 1
+            del arr[i - ite]
+            ite += 1
         return arr
 
     def generate_stopwords(self, arr_worlds: list):
@@ -183,13 +197,18 @@ class IRS:
         text = ""
         with open('train.csv') as csv_file:
             csv_reader = csv.reader(csv_file)
-            iter = 0
+            ite = 0
             for row in csv_reader:
-                if iter > 0:
+                # jump from row with index 0 (name of column)
+                if ite > 0:
+                    # remove rate and popularity so worked with title and plot
+                    row = row[:-3]
+                    # join name and plot in one string
                     text += " ".join(row) + " "
-                    if iter == self.number_of_row + 1:
+                    # exit loop when ...
+                    if ite == self.number_of_row + 1:
                         break
-                iter = iter + 1
+                ite = ite + 1
             text = " ".join(text.split("-"))
         return text
 
@@ -197,21 +216,21 @@ class IRS:
         arr = []
         with open('train.csv') as csv_file:
             csv_reader = csv.reader(csv_file)
-            iter = 0
+            ite = 0
             if arr_of_exception is None:
                 for row in csv_reader:
-                    arr.append({"id": iter-1, "title": row[0], "plot": row[1]})
-                    if iter == self.number_of_row:
+                    arr.append({"id": ite-1, "title": row[0], "plot": row[1]})
+                    if ite == self.number_of_row:
                         break
-                    iter += 1
+                    ite += 1
                 arr = arr[1:]
             else:
                 for row in csv_reader:
-                    if iter-1 not in arr_of_exception or len(arr_of_exception) == 0:
-                        arr.append({"id": iter-1, "title": row[0], "plot": row[1]})
-                    if iter == self.number_of_row:
+                    if ite-1 not in arr_of_exception or len(arr_of_exception) == 0:
+                        arr.append({"id": ite-1, "title": row[0], "plot": row[1]})
+                    if ite == self.number_of_row:
                         break
-                    iter += 1
+                    ite += 1
                 arr = arr[1:]
             return arr
 
