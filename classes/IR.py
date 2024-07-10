@@ -2,6 +2,8 @@ import nltk
 import csv
 import re
 
+from classes.utils import UtilsIR
+
 from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet as wn
 
@@ -11,6 +13,7 @@ from nltk.corpus import wordnet as wn
 
 class IRS:
     stemmer = nltk.stem.PorterStemmer()
+    __func_utils = UtilsIR()
 
     def __init__(self, number_of_row):
         self.number_of_row = number_of_row
@@ -86,7 +89,7 @@ class IRS:
             if wt[i].startswith("'") and wt[i][1:].isalnum():
                 wt[i] = wt[i][1:]
             wt[i] = self.__lemmatization_word(wt[i])
-        wt.sort()
+        # wt.sort()
         return wt
 
     def clean_word(self, arr: list) -> list:
@@ -323,4 +326,32 @@ class IRS:
                     print("not add")
         com_arr = self.read_title_and_plot(arr_deleting_indexes) + arr_adding_indexes
         return com_arr
+
+    def vb(self, dict_of_word: dict) -> dict:
+        # chang arr of obj to arr of index
+        for i in dict_of_word:
+            list_index_title = []
+            list_index_plot = []
+            if len(dict_of_word[i]["title"]) > 0:
+                for j in range(len(dict_of_word[i]["title"])):
+                    list_index_title.append(list(dict_of_word[i]["title"][j])[0])
+                dict_of_word[i]["title"] = list_index_title
+            if len(dict_of_word[i]["plot"]) > 0:
+                for j in range(len(dict_of_word[i]["plot"])):
+                    list_index_plot.append(list(dict_of_word[i]["plot"][j])[0])
+                dict_of_word[i]["plot"] = list_index_plot
+            list_all_index = list_index_title + list_index_plot
+            list_all_index.sort()
+            clear_list_all_index = self.__func_utils.remove_frequency_words_from_list(list_all_index)
+            vb_code = []
+            binary_number = self.__func_utils.int_to_binary(clear_list_all_index[0], 7)
+            vb_code.append(self.__func_utils.binary_to_vb_code(binary_number, 7))
+            for j in range(len(clear_list_all_index[1:])):
+                index_after = clear_list_all_index[j + 1]
+                index_before = clear_list_all_index[j]
+                binary_number = self.__func_utils.int_to_binary(index_after - index_before, 7)
+                vb_code.append(self.__func_utils.binary_to_vb_code(binary_number, 7))
+            dict_of_word[i] = "".join(vb_code)
+        return dict_of_word
+
 
