@@ -1,6 +1,7 @@
 import nltk
 import csv
 import re
+import math
 
 from classes.utils import UtilsIR
 
@@ -42,7 +43,6 @@ class IRS:
         lemAdjS = lemmatizer.lemmatize(word, pos=wn.ADJ_SAT)
         if len(res_word) > 0:
             word_lem = res_word.pop()
-            # print(f"{pos_wod}\nw {word}\n{wn.NOUN} {lemNoun}\n{wn.VERB} {lemVerb}\n{wn.ADJ} {lemAdj}\n{wn.ADV} {lemAdv}\n{wn.ADJ_SAT} {lemAdjS}\n")
             if (lemNoun != lemVerb
                     or (lemNoun == lemVerb
                         and lemVerb == lemAdj
@@ -89,7 +89,6 @@ class IRS:
             if wt[i].startswith("'") and wt[i][1:].isalnum():
                 wt[i] = wt[i][1:]
             wt[i] = self.__lemmatization_word(wt[i])
-        # wt.sort()
         return wt
 
     def clean_word(self, arr: list) -> list:
@@ -293,7 +292,6 @@ class IRS:
                 print("\033[91mprocess positional ended\033[0m")
                 break
             text_list = input_text.split(',')
-            # print(text_list)
             if not (len(text_list) == 3 or len(text_list) == 1):
                 print("\033[91mformat input not correct\033[0m")
             for i in range(len(text_list)):
@@ -327,7 +325,7 @@ class IRS:
         com_arr = self.read_title_and_plot(arr_deleting_indexes) + arr_adding_indexes
         return com_arr
 
-    def vb(self, dict_of_word: dict) -> dict:
+    def change_list_dict_of_index_to_list_index(self, dict_of_word: dict):
         # chang arr of obj to arr of index
         for i in dict_of_word:
             list_index_title = []
@@ -343,15 +341,47 @@ class IRS:
             list_all_index = list_index_title + list_index_plot
             list_all_index.sort()
             clear_list_all_index = self.__func_utils.remove_frequency_words_from_list(list_all_index)
-            vb_code = []
-            binary_number = self.__func_utils.int_to_binary(clear_list_all_index[0], 7)
-            vb_code.append(self.__func_utils.binary_to_vb_code(binary_number, 7))
-            for j in range(len(clear_list_all_index[1:])):
-                index_after = clear_list_all_index[j + 1]
-                index_before = clear_list_all_index[j]
-                binary_number = self.__func_utils.int_to_binary(index_after - index_before, 7)
-                vb_code.append(self.__func_utils.binary_to_vb_code(binary_number, 7))
-            dict_of_word[i] = "".join(vb_code)
+            dict_of_word[i] = clear_list_all_index
         return dict_of_word
 
+    def __vb_code(self, list_index: list):
+        vb_code = []
+        binary_number = self.__func_utils.int_to_binary(list_index[0], 7)
+        vb_code.append(self.__func_utils.binary_to_vb_code(binary_number, 7))
+        for j in range(len(list_index[1:])):
+            index_after = list_index[j + 1]
+            index_before = list_index[j]
+            binary_number = self.__func_utils.int_to_binary(index_after - index_before, 7)
+            vb_code.append(self.__func_utils.binary_to_vb_code(binary_number, 7))
+        return "".join(vb_code)
 
+    def vb_code(self, dict_of_word: dict) -> dict:
+        dict_of_vb_code_word = {}
+        for i in dict_of_word:
+            dict_of_vb_code_word[i] = self.__vb_code(dict_of_word[i])
+        return dict_of_vb_code_word
+
+    def __g_code(self, number: int):
+        if number == 0:
+            return "0"
+        length_g_code = ""
+        number_of_one_length_g_code = int(math.log(number, 2))
+        for i in range(number_of_one_length_g_code):
+            length_g_code += "1"
+        length_g_code += "0"
+        binary_number = self.__func_utils.int_to_binary(number)
+        offset_g_code = binary_number[1:]
+        return length_g_code + offset_g_code
+
+    def g_code(self, dict_of_word: dict) -> dict:
+        dict_of_g_code_word = {}
+        int(math.log(1, 2))
+        for i in dict_of_word:
+            g_code = []
+            g_code.append(self.__g_code(dict_of_word[i][0]))
+            for j in range(len(dict_of_word[i][1:])):
+                index_after = dict_of_word[i][j + 1]
+                index_before = dict_of_word[i][j]
+                g_code.append(self.__g_code(index_after - index_before))
+            dict_of_g_code_word[i] = "".join(g_code)
+        return dict_of_g_code_word
