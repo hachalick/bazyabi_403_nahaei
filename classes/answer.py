@@ -56,5 +56,12 @@ class Answer:
         text_title_and_plot = self.__ir_system.read_title_and_plot()
         list_tokenize_title_and_plot = self.__ir_system.tokenize_title_and_plot(text_title_and_plot)
         posting_title_and_plot = self.__ir_system.posting_title_and_plot(list_tokenize_title_and_plot)
-        comp_vb = self.__ir_system.vb(posting_title_and_plot)
-        print(comp_vb)
+        dict_list_index = self.__ir_system.change_list_dict_of_index_to_list_index(posting_title_and_plot)
+        vb_code = self.__ir_system.vb_code(dict_list_index)
+        g_code = self.__ir_system.g_code(dict_list_index)
+        text_question = """\033[94mذخیرهسازی به ۳ روش صورت میگیرد
+        \rبدون فشردهسازی - فشردهسازی از روش code-gam - فشردهسازی از روش .byte-varia"""
+        print(text_question)
+        print("\033[95manswer 5.1 (without):\033[0m\n", dict_list_index, "\n")
+        print("\033[95manswer 5.2 (vb code):\033[0m\n", vb_code, "\n")
+        print("\033[95manswer 5.3 (g code):\033[0m\n", g_code, "\n")
