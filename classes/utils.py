@@ -9,9 +9,12 @@ class UtilsIR:
     def remove_frequency_words_from_list(self, data: list) -> list:
         return list(dict.fromkeys(data))
 
-    def int_to_binary(self, number: int, bite: int) -> str:
-        count = int(len(bin(number)[2:])/bite)+1
-        return bin(number)[2:].zfill(bite * count)
+    def int_to_binary(self, number: int, bite: int = 0) -> str:
+        if bite == 0:
+            return bin(number)[2:]
+        else:
+            count = int(len(bin(number)[2:])/bite)+1
+            return bin(number)[2:].zfill(bite * count)
 
     def binary_to_int(self, number: str) -> int:
         return int(number, 2)
