@@ -52,4 +52,9 @@ class Answer:
         print(text_question)
         print("\033[95manswer 4:\033[0m\n", posting_title_and_plot_with_change, "\n")
 
-
+    def q5(self):
+        text_title_and_plot = self.__ir_system.read_title_and_plot()
+        list_tokenize_title_and_plot = self.__ir_system.tokenize_title_and_plot(text_title_and_plot)
+        posting_title_and_plot = self.__ir_system.posting_title_and_plot(list_tokenize_title_and_plot)
+        comp_vb = self.__ir_system.vb(posting_title_and_plot)
+        print(comp_vb)
