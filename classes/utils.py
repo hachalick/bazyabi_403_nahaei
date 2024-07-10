@@ -8,3 +8,23 @@ class UtilsIR:
 
     def remove_frequency_words_from_list(self, data: list) -> list:
         return list(dict.fromkeys(data))
+
+    def int_to_binary(self, number: int, bite: int) -> str:
+        count = int(len(bin(number)[2:])/bite)+1
+        return bin(number)[2:].zfill(bite * count)
+
+    def binary_to_int(self, number: str) -> int:
+        return int(number, 2)
+
+    def binary_to_vb_code(self, number: str, bite: int) -> str:
+        vb_code = []
+        length_number = len(number)
+        for i in range(int(length_number/bite)):
+            if (i + 1) * bite == length_number:
+                vb_code.append("1")
+            else:
+                vb_code.append("0")
+            vb_code.append(number[i*bite:(i+1)*bite])
+        return "".join(vb_code)
+
+
