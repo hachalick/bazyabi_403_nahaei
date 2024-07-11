@@ -2,6 +2,7 @@ import nltk
 import csv
 import re
 import math
+import editdistance
 
 from classes.utils import UtilsIR
 
@@ -393,14 +394,37 @@ class IRS:
 
     def find_bigrams(self, query: str, words: dict):
         tokenize_user_query = self.tokenizer(query)
-        list_of_words = list(words)
-        # self.__func_utils.create_list_bigram()
-        for word_queri in tokenize_user_query:
-            for k_gram in self.__func_utils.create_list_bigrams(word_queri):
-                for word in list_of_words:
-                    if re.match(k_gram, word) is not None:
-                        print(k_gram[2:4], word)
-        # for word in words:
-        #     for j in tokenize_user_query:
-        #         print(word, j)
+        dict_word_matching_trigram = {}
+        for word in words:
+            dict_word_matching_trigram[word] = []
+            for word_query in tokenize_user_query:
+                for bigrams in self.__func_utils.create_list_bigrams(word_query):
+                    if re.match(bigrams, word) is not None:
+                        dict_word_matching_trigram[word].append(bigrams[2:4])
+        list_word_del = []
+        for word in dict_word_matching_trigram:
+            if len(dict_word_matching_trigram[word]) == 0:
+                list_word_del.append(word)
+        for i in list_word_del:
+            del dict_word_matching_trigram[i]
+        # print(dict_word_matching_trigram)
+        dict_rate_matching_trigram = {}
+        for i in dict_word_matching_trigram:
+            dict_rate_matching_trigram[len(dict_word_matching_trigram[i])] = {}
+        for i in dict_word_matching_trigram:
+            dict_rate_matching_trigram[len(dict_word_matching_trigram[i])][i] = dict_word_matching_trigram[i]
+        print(dict_rate_matching_trigram)
+        list_rate_number = list(dict_rate_matching_trigram)
+        list_rate_number.sort(reverse=True)
+        # print(list_rate_number)
+        # print(editdistance.eval('banana', 'banane'))
+        for i in list_rate_number:
+            # print("eshterak", i)
+            for j in dict_rate_matching_trigram[i]:
+                bigrams_word = self.__func_utils.create_list_bigrams(j, False)
+                # print(bigrams_word, dict_rate_matching_trigram[i][j])
+                # print("ejtema", len(bigrams_word))
+                print(query, j)
+                print("jaccard =", int((i/len(bigrams_word)*100)))
+                print()
 
