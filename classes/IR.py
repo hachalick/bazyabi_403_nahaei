@@ -7,6 +7,7 @@ from classes.utils import UtilsIR
 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet as wn
+from nltk.collocations import BigramCollocationFinder
 
 # nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger')
@@ -385,3 +386,21 @@ class IRS:
                 g_code.append(self.__g_code(index_after - index_before))
             dict_of_g_code_word[i] = "".join(g_code)
         return dict_of_g_code_word
+
+    def get_query(self):
+        text = "werr"
+        return text
+
+    def find_bigrams(self, query: str, words: dict):
+        tokenize_user_query = self.tokenizer(query)
+        list_of_words = list(words)
+        # self.__func_utils.create_list_bigram()
+        for word_queri in tokenize_user_query:
+            for k_gram in self.__func_utils.create_list_bigrams(word_queri):
+                for word in list_of_words:
+                    if re.match(k_gram, word) is not None:
+                        print(k_gram[2:4], word)
+        # for word in words:
+        #     for j in tokenize_user_query:
+        #         print(word, j)
+
