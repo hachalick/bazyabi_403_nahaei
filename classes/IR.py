@@ -425,6 +425,6 @@ class IRS:
                 # print(bigrams_word, dict_rate_matching_trigram[i][j])
                 # print("ejtema", len(bigrams_word))
                 print(query, j)
-                print("jaccard =", int((i/len(bigrams_word)*100)))
+                print(f"jaccard = {int((i/len(bigrams_word)*100))}%")
                 print()
 
