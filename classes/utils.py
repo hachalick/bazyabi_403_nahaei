@@ -30,12 +30,14 @@ class UtilsIR:
             vb_code.append(number[i*bite:(i+1)*bite])
         return "".join(vb_code)
 
-    def create_list_bigrams(self, word: str) -> list :
+    def create_list_bigrams(self, word: str, return_reg: bool = True) -> list :
         list_k_gram = []
         word = word.lower()
-        word = "^" + word + "$"
         for i in range(len(word) - 1):
-            list_k_gram.append(".*"+word[i:i+2]+".*")
+            if return_reg:
+                list_k_gram.append(".*"+word[i:i+2]+".*")
+            else:
+                list_k_gram.append(word[i:i+2])
         return list_k_gram
 
 
