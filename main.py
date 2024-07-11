@@ -1,6 +1,6 @@
 from classes.answer import Answer
 
-number_of_row = 500
+number_of_row = 50
 answer_q = Answer(number_of_row)
 # answer_q.q1()
 # answer_q.q2()
