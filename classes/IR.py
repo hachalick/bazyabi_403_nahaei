@@ -389,7 +389,7 @@ class IRS:
         return dict_of_g_code_word
 
     def get_query(self):
-        text = "werr"
+        text = "workerr"
         return text
 
     def find_bigrams(self, query: str, words: dict):
@@ -419,12 +419,17 @@ class IRS:
         # print(list_rate_number)
         # print(editdistance.eval('banana', 'banane'))
         for i in list_rate_number:
-            # print("eshterak", i)
             for j in dict_rate_matching_trigram[i]:
                 bigrams_word = self.__func_utils.create_list_bigrams(j, False)
-                # print(bigrams_word, dict_rate_matching_trigram[i][j])
-                # print("ejtema", len(bigrams_word))
+                bigrams_query = self.__func_utils.create_list_bigrams(query, False)
+                eshterak = i
+                ejtema = len(self.__func_utils.remove_frequency_words_from_list(bigrams_word + bigrams_query))
+                print(bigrams_word, bigrams_query)
+                print(self.__func_utils.remove_frequency_words_from_list(bigrams_word + bigrams_query))
+                print("eshterak", eshterak)
+                print("ejtema", ejtema)
                 print(query, j)
-                print(f"jaccard = {int((i/len(bigrams_word)*100))}%")
+                print(editdistance.eval(query, j))
+                print(f"jaccard = {int((eshterak/ejtema)*100)}%")
                 print()
 
