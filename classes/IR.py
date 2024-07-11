@@ -413,23 +413,28 @@ class IRS:
             dict_rate_matching_trigram[len(dict_word_matching_trigram[i])] = {}
         for i in dict_word_matching_trigram:
             dict_rate_matching_trigram[len(dict_word_matching_trigram[i])][i] = dict_word_matching_trigram[i]
-        print(dict_rate_matching_trigram)
         list_rate_number = list(dict_rate_matching_trigram)
         list_rate_number.sort(reverse=True)
-        # print(list_rate_number)
-        # print(editdistance.eval('banana', 'banane'))
+        list_jaccard_editdistance = []
         for i in list_rate_number:
             for j in dict_rate_matching_trigram[i]:
                 bigrams_word = self.__func_utils.create_list_bigrams(j, False)
                 bigrams_query = self.__func_utils.create_list_bigrams(query, False)
                 eshterak = i
                 ejtema = len(self.__func_utils.remove_frequency_words_from_list(bigrams_word + bigrams_query))
-                print(bigrams_word, bigrams_query)
-                print(self.__func_utils.remove_frequency_words_from_list(bigrams_word + bigrams_query))
-                print("eshterak", eshterak)
-                print("ejtema", ejtema)
-                print(query, j)
-                print(editdistance.eval(query, j))
-                print(f"jaccard = {int((eshterak/ejtema)*100)}%")
-                print()
-
+                jaccard = int((eshterak/ejtema)*100)
+                editdistance_word = editdistance.eval(query, j)
+                list_jaccard_editdistance.append({"word": j, "editdistance": editdistance_word, "jaccard": jaccard})
+        # print(dict_jaccard_editdistance)
+        sorted_data = sorted(list_jaccard_editdistance, key=lambda x: x['jaccard'], reverse=True)
+        list_jaccard_editdistance.sort(key=lambda x: x['jaccard'])
+        # print(sorted_data)
+        min_jacard = 40
+        list_top_jacard = []
+        for i in sorted_data:
+            if i['jaccard'] > min_jacard:
+                list_top_jacard.append(i)
+        # print(list_top_jacard)
+        sorted_data = sorted(list_top_jacard, key=lambda x: x['editdistance'])
+        list_jaccard_editdistance.sort(key=lambda x: x['editdistance'])
+        print(sorted_data)
