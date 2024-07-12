@@ -450,13 +450,13 @@ class IRS:
     def calculate_score(self, list_tf: list):
         list_score = []
         for i in list_tf:
-            sum = 0
+            sum_score = 0
             for j in i["title"]:
-                sum += i["title"][j]
+                sum_score += i["title"][j]
             for j in i["plot"]:
-                sum += i["plot"][j]
+                sum_score += i["plot"][j]
             list_score.append(
-                {"id": i["id"], "score": sum,
+                {"id": i["id"], "score": sum_score,
                  "title": i["title"],
                  "plot": i["plot"]})
         max_score = {"id": -1, "score": 0}
@@ -464,10 +464,9 @@ class IRS:
             if i["score"] > max_score["score"]:
                 max_score["id"] = i["id"]
                 max_score["score"] = i["score"]
-        print(max_score)
+        return max_score
 
     def create_list_title(self, query: list, list_dict_title_and_title: list, weight_tf: int = 1):
-        print("query: ", query)
         list_tf = []
         for i in list_dict_title_and_title:
             for j in query:
@@ -476,27 +475,9 @@ class IRS:
         for i in list_tf:
             for j in i["title"]:
                 i["title"][j] *= weight_tf
-        print(list_tf)
-        list_score = []
-        for i in list_tf:
-            sum = 0
-            for j in i["title"]:
-                sum += i["title"][j]
-            for j in i["plot"]:
-                sum += i["plot"][j]
-            list_score.append(
-                {"id": i["id"], "score": sum,
-                 "title": i["title"],
-                 "plot": i["plot"]})
-        max_score = {"id": -1, "score": 0}
-        for i in list_score:
-            if i["score"] > max_score["score"]:
-                max_score["id"] = i["id"]
-                max_score["score"] = i["score"]
-        print(max_score)
+        return list_tf
 
     def create_list_plot(self, query: list, list_dict_title_and_plot: list, weight_tf: int = 1):
-        print("query: ", query)
         list_tf = []
         for i in list_dict_title_and_plot:
             for j in query:
@@ -505,21 +486,10 @@ class IRS:
         for i in list_tf:
             for j in i["plot"]:
                 i["plot"][j] *= weight_tf
-        print(list_tf)
-        list_score = []
-        for i in list_tf:
-            sum = 0
-            for j in i["title"]:
-                sum += i["title"][j]
-            for j in i["plot"]:
-                sum += i["plot"][j]
-            list_score.append(
-                {"id": i["id"], "score": sum,
-                 "title": i["title"],
-                 "plot": i["plot"]})
-        max_score = {"id": -1, "score": 0}
-        for i in list_score:
-            if i["score"] > max_score["score"]:
-                max_score["id"] = i["id"]
-                max_score["score"] = i["score"]
-        print(max_score)
+        return list_tf
+
+    def comparison_high_score(self, dict_score_title, dict_score_plot):
+        if dict_score_title["score"] >= dict_score_plot["score"]:
+            return dict_score_title
+        else:
+            return dict_score_plot
