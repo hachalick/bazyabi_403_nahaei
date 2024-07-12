@@ -437,4 +437,4 @@ class IRS:
         # print(list_top_jacard)
         sorted_data = sorted(list_top_jacard, key=lambda x: x['editdistance'])
         list_jaccard_editdistance.sort(key=lambda x: x['editdistance'])
-        print(sorted_data)
+        print(sorted_data[0])
