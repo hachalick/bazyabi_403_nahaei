@@ -75,6 +75,15 @@ class Answer:
         posting_title_and_plot = self.__ir_system.posting_title_and_plot(list_tokenize_title_and_plot)
         user_query = self.__ir_system.get_query()
         self.__ir_system.find_bigrams(user_query, posting_title_and_plot)
+        return
 
-        # print(list(posting_title_and_plot))
+    def q7(self):
+        text_title_and_plot = self.__ir_system.read_title_and_plot()
+        list_tokenize_title_and_plot = self.__ir_system.tokenize_title_and_plot(text_title_and_plot)
+        query_title = "casino heat babe the a"
+        query_title_tokenized_plot = self.__ir_system.tokenizer(query_title)
+        list_title_tf = self.__ir_system.create_list_title(query_title_tokenized_plot, list_tokenize_title_and_plot)
+        query_plot = "family"
+        query_plot_tokenized_plot = self.__ir_system.tokenizer(query_plot)
+        list_plot_tf = self.__ir_system.create_list_plot(query_plot_tokenized_plot, list_tokenize_title_and_plot)
         return
