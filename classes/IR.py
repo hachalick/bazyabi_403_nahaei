@@ -389,7 +389,7 @@ class IRS:
         return dict_of_g_code_word
 
     def get_query(self):
-        text = "workerr"
+        text = "grumplyi"
         return text
 
     def find_bigrams(self, query: str, words: dict):
@@ -422,19 +422,104 @@ class IRS:
                 bigrams_query = self.__func_utils.create_list_bigrams(query, False)
                 eshterak = i
                 ejtema = len(self.__func_utils.remove_frequency_words_from_list(bigrams_word + bigrams_query))
-                jaccard = int((eshterak/ejtema)*100)
+                jaccard = int((eshterak/ejtema)*100000)/1000
                 editdistance_word = editdistance.eval(query, j)
                 list_jaccard_editdistance.append({"word": j, "editdistance": editdistance_word, "jaccard": jaccard})
-        # print(dict_jaccard_editdistance)
         sorted_data = sorted(list_jaccard_editdistance, key=lambda x: x['jaccard'], reverse=True)
         list_jaccard_editdistance.sort(key=lambda x: x['jaccard'])
-        # print(sorted_data)
         min_jacard = 40
         list_top_jacard = []
         for i in sorted_data:
             if i['jaccard'] > min_jacard:
                 list_top_jacard.append(i)
-        # print(list_top_jacard)
         sorted_data = sorted(list_top_jacard, key=lambda x: x['editdistance'])
         list_jaccard_editdistance.sort(key=lambda x: x['editdistance'])
         print(sorted_data[0])
+
+    def calculate_tf(self, list_of_words: list):
+        dict_of_words = {}
+        for i in list_of_words:
+            dict_of_words[i] = 0
+        for i in list_of_words:
+            dict_of_words[i] += 1
+        dict_tf = {}
+        for i in dict_of_words:
+            dict_tf[i] = math.log(dict_of_words[i]) + 1
+        return dict_tf
+
+    def calculate_score(self, list_tf: list):
+        list_score = []
+        for i in list_tf:
+            sum = 0
+            for j in i["title"]:
+                sum += i["title"][j]
+            for j in i["plot"]:
+                sum += i["plot"][j]
+            list_score.append(
+                {"id": i["id"], "score": sum,
+                 "title": i["title"],
+                 "plot": i["plot"]})
+        max_score = {"id": -1, "score": 0}
+        for i in list_score:
+            if i["score"] > max_score["score"]:
+                max_score["id"] = i["id"]
+                max_score["score"] = i["score"]
+        print(max_score)
+
+    def create_list_title(self, query: list, list_dict_title_and_title: list, weight_tf: int = 1):
+        print("query: ", query)
+        list_tf = []
+        for i in list_dict_title_and_title:
+            for j in query:
+                if j in i["title"]:
+                    list_tf.append({"id": i["id"], "title": self.calculate_tf(i["title"]), "plot": self.calculate_tf(i["plot"])})
+        for i in list_tf:
+            for j in i["title"]:
+                i["title"][j] *= weight_tf
+        print(list_tf)
+        list_score = []
+        for i in list_tf:
+            sum = 0
+            for j in i["title"]:
+                sum += i["title"][j]
+            for j in i["plot"]:
+                sum += i["plot"][j]
+            list_score.append(
+                {"id": i["id"], "score": sum,
+                 "title": i["title"],
+                 "plot": i["plot"]})
+        max_score = {"id": -1, "score": 0}
+        for i in list_score:
+            if i["score"] > max_score["score"]:
+                max_score["id"] = i["id"]
+                max_score["score"] = i["score"]
+        print(max_score)
+
+    def create_list_plot(self, query: list, list_dict_title_and_plot: list, weight_tf: int = 1):
+        print("query: ", query)
+        list_tf = []
+        for i in list_dict_title_and_plot:
+            for j in query:
+                if j in i["plot"]:
+                    list_tf.append({"id": i["id"], "title": self.calculate_tf(i["title"]), "plot": self.calculate_tf(i["plot"])})
+        for i in list_tf:
+            for j in i["plot"]:
+                i["plot"][j] *= weight_tf
+        print(list_tf)
+        list_score = []
+        for i in list_tf:
+            sum = 0
+            for j in i["title"]:
+                sum += i["title"][j]
+            for j in i["plot"]:
+                sum += i["plot"][j]
+            list_score.append(
+                {"id": i["id"], "score": sum,
+                 "title": i["title"],
+                 "plot": i["plot"]})
+        max_score = {"id": -1, "score": 0}
+        for i in list_score:
+            if i["score"] > max_score["score"]:
+                max_score["id"] = i["id"]
+                max_score["score"] = i["score"]
+        print(max_score)
