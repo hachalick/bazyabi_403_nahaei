@@ -8,21 +8,27 @@ from classes.utils import UtilsIR
 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet as wn
-from nltk.collocations import BigramCollocationFinder
 
 # nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger')
-# nltk.download('punkt')
 
 
 class IRS:
     stemmer = nltk.stem.PorterStemmer()
     __func_utils = UtilsIR()
 
-    def __init__(self, number_of_row):
+    def __init__(self, number_of_row: int):
+        """
+        :param number_of_row: int
+        """
         self.number_of_row = number_of_row
 
     def __detected_word(self, word: str) -> str:
+        """
+        get any word and detected is noun or verb or adj or adv
+        :param word: str
+        :return: "a" | "v" | "r" | "n"
+        """
         empty_list = [word]
         ans = nltk.pos_tag(empty_list, lang='eng')
         val: str = ans[0][1]
@@ -35,7 +41,12 @@ class IRS:
         else:
             return wn.NOUN
 
-    def __lemmatization_word(self, word: str) -> str:
+    def __lemmatize_and_stem_word(self, word: str) -> str:
+        """
+        get any word and do the lemmatization and stemming on the word
+        :param word: str
+        :return: word of lemmatizing and stemming
+        """
         pos_wod = self.__detected_word(word)
         res_word = wn._morphy(word, pos_wod)
         lemmatizer = nltk.stem.WordNetLemmatizer()
@@ -59,8 +70,13 @@ class IRS:
         else:
             return word
 
-    def tokenizer(self, main_text: str) -> list:
-        wt = word_tokenize(main_text)
+    def tokenizer(self, text: str) -> list:
+        """
+        get a text and tokenize it to list of word
+        :param text: str
+        :return: [ word, punctuation, ... ]
+        """
+        wt = word_tokenize(text)
         for i in range(len(wt)):
             wt[i] = wt[i].casefold()
             wt[i] = re.sub("""â€™s""", "", wt[i])
@@ -91,94 +107,101 @@ class IRS:
                     wt[i] = "are"
             if wt[i].startswith("'") and wt[i][1:].isalnum():
                 wt[i] = wt[i][1:]
-            wt[i] = self.__lemmatization_word(wt[i])
+            wt[i] = self.__lemmatize_and_stem_word(wt[i])
         return wt
 
-    def clean_word(self, arr: list) -> list:
-        arr_delete = []
-        for i in range(len(arr)):
-            match arr[i]:
+    def clean_word(self, list_of_words: list) -> list:
+        """
+        get list of words and remove punctuation indexes
+        :param list_of_words: list of str
+        :return: [ word, ... ]
+        """
+        list_index_delete_from_list_of_word = []
+        for i in range(len(list_of_words)):
+            match list_of_words[i]:
                 case "":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "/":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "\\":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case ".":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "..":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "...":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "....":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case ",":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case ";":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case ":":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "?":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "!":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "@":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "$":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "%":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "^":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "&":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "*":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "(":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case ")":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "-":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "--":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "_":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "=":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "+":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "#":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case '“':
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case '”':
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case '``':
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "\'":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "\'\'":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "\'\'":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
                 case "\'\'":
-                    arr_delete.append(i)
+                    list_index_delete_from_list_of_word.append(i)
         ite = 0
-        for i in arr_delete:
-            del arr[i - ite]
+        for i in list_index_delete_from_list_of_word:
+            del list_of_words[i - ite]
             ite += 1
-        return arr
+        return list_of_words
 
-    def generate_stopwords(self, arr_worlds: list):
-        arr_worlds.sort()
-        dic = {}
-        for i in arr_worlds:
-            if i not in dic:
-                dic[i] = 1
-            else:
-                dic[i] = dic[i] + 1
-        return dic
+    def generate_stopwords(self, list_of_words: list) -> dict:
+        """
+        get list of words and create dictionary of inner words list with frequency
+        :param list_of_words: list of str
+        :return: { word: frequency, ... }
+        """
+        list_of_words.sort()
+        dic_of_words = {}
+        for i in list_of_words:
+            1 if i not in dic_of_words else dic_of_words[i] += 1
+        return dic_of_words
 
     def add_value_to_list(self, dict_token: dict) -> list:
         new_list = []
@@ -189,6 +212,12 @@ class IRS:
         return new_list
 
     def sort_dict(self, dict_token_no_sort: dict, arr_sort: list, out_of: int = -1) -> dict:
+        """
+        :param dict_token_no_sort:
+        :param arr_sort:
+        :param out_of:
+        :return:
+        """
         new_dict = {}
         for i in arr_sort:
             for j in dict_token_no_sort:
@@ -199,18 +228,24 @@ class IRS:
         return new_dict
 
     def read_all_row(self) -> str:
+        """
+        description:
+        Reading the lines of the file train.csv with the number of entered numbers
+        :return: "title1 plot1 title2 plot2 ..."
+        "Grumpier Old Man A Family ...."
+        """
         text = ""
         with open('train.csv') as csv_file:
             csv_reader = csv.reader(csv_file)
             ite = 0
             for row in csv_reader:
-                # jump from row with index 0 (name of column)
+                """ jump from row with index 0 (name of column) """
                 if ite > 0:
-                    # remove rate and popularity so worked with title and plot
+                    """ remove rate and popularity so worked with title and plot """
                     row = row[:-3]
-                    # join name and plot in one string
+                    """ join name and plot in one string """
                     text += " ".join(row) + " "
-                    # exit loop when ...
+                    """ exit loop when ... """
                     if ite == self.number_of_row + 1:
                         break
                 ite = ite + 1
@@ -238,6 +273,19 @@ class IRS:
                     ite += 1
                 arr = arr[1:]
             return arr
+
+    def read_row_of_csv(self, id_row: int) -> dict:
+        id_row += 1
+        film = {}
+        with open('train.csv') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            ite = 0
+            for row in csv_reader:
+                if ite == id_row:
+                    film = {"id": ite-1, "title": row[0], "plot": row[1]}
+                    break
+                ite += 1
+        return film
 
     def tokenize_title_and_plot(self, list_dynamic: list) -> list:
         for i in range(len(list_dynamic)):
@@ -329,7 +377,7 @@ class IRS:
         return com_arr
 
     def change_list_dict_of_index_to_list_index(self, dict_of_word: dict):
-        # chang arr of obj to arr of index
+        """chang arr of obj to arr of index"""
         for i in dict_of_word:
             list_index_title = []
             list_index_plot = []
@@ -347,7 +395,7 @@ class IRS:
             dict_of_word[i] = clear_list_all_index
         return dict_of_word
 
-    def __vb_code(self, list_index: list):
+    def __vb_code(self, list_index: list) -> str:
         vb_code = []
         binary_number = self.__func_utils.int_to_binary(list_index[0], 7)
         vb_code.append(self.__func_utils.binary_to_vb_code(binary_number, 7))
@@ -364,7 +412,7 @@ class IRS:
             dict_of_vb_code_word[i] = self.__vb_code(dict_of_word[i])
         return dict_of_vb_code_word
 
-    def __g_code(self, number: int):
+    def __g_code(self, number: int) -> str:
         if number == 0:
             return "0"
         length_g_code = ""
@@ -378,7 +426,6 @@ class IRS:
 
     def g_code(self, dict_of_word: dict) -> dict:
         dict_of_g_code_word = {}
-        int(math.log(1, 2))
         for i in dict_of_word:
             g_code = []
             g_code.append(self.__g_code(dict_of_word[i][0]))
@@ -389,8 +436,8 @@ class IRS:
             dict_of_g_code_word[i] = "".join(g_code)
         return dict_of_g_code_word
 
-    def get_query(self):
-        text = "grumplyi"
+    def get_query(self) -> str:
+        text = input("enter: ")
         return text
 
     def find_bigrams(self, query: str, words: dict):
@@ -408,7 +455,6 @@ class IRS:
                 list_word_del.append(word)
         for i in list_word_del:
             del dict_word_matching_trigram[i]
-        # print(dict_word_matching_trigram)
         dict_rate_matching_trigram = {}
         for i in dict_word_matching_trigram:
             dict_rate_matching_trigram[len(dict_word_matching_trigram[i])] = {}
@@ -460,14 +506,11 @@ class IRS:
                 {"id": i["id"], "score": sum_score,
                  "title": i["title"],
                  "plot": i["plot"]})
-        max_score = {"id": -1, "score": 0}
-        for i in list_score:
-            if i["score"] > max_score["score"]:
-                max_score["id"] = i["id"]
-                max_score["score"] = i["score"]
-        return max_score
+        sorted_data = sorted(list_score, key=lambda x: x['score'], reverse=True)
+        sorted_data.sort(key=lambda x: x['score'], reverse=True)
+        return sorted_data
 
-    def create_list_title(self, query: list, list_dict_title_and_title: list, weight_tf: int = 1):
+    def create_list_title(self, query: list, list_dict_title_and_title: list, weight_tf: float = 1.0):
         list_tf = []
         for i in list_dict_title_and_title:
             for j in query:
@@ -478,7 +521,7 @@ class IRS:
                 i["title"][j] *= weight_tf
         return list_tf
 
-    def create_list_plot(self, query: list, list_dict_title_and_plot: list, weight_tf: int = 1):
+    def create_list_plot(self, query: list, list_dict_title_and_plot: list, weight_tf: float = 1.0):
         list_tf = []
         for i in list_dict_title_and_plot:
             for j in query:
@@ -489,8 +532,15 @@ class IRS:
                 i["plot"][j] *= weight_tf
         return list_tf
 
-    def comparison_high_score(self, dict_score_title, dict_score_plot):
-        if dict_score_title["score"] >= dict_score_plot["score"]:
-            return dict_score_title
+    def comparison_high_score(self, dict_score_title, dict_score_plot, max_number_of_return: int):
+        list_all_score = dict_score_title + dict_score_plot
+        sorted_data = sorted(list_all_score, key=lambda x: x['score'], reverse=True)
+        sorted_data.sort(key=lambda x: x['score'], reverse=True)
+        if len(sorted_data) > max_number_of_return:
+            return sorted_data[:max_number_of_return]
         else:
-            return dict_score_plot
+            return sorted_data
+
+
+    def remove_frequency_words(self):
+        pass
