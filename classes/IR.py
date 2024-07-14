@@ -12,6 +12,7 @@ from nltk.collocations import BigramCollocationFinder
 
 # nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger')
+# nltk.download('punkt')
 
 
 class IRS:
