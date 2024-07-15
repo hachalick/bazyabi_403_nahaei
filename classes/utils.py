@@ -91,3 +91,11 @@ class UtilsIR:
         list_of_dicts.sort(key=lambda x: x[base_key], reverse=reverse)
         return sorted_data
 
+    def remove_stopword(self, dict_of_word: dict, limit: int) -> dict:
+        list_word_del = []
+        for word in dict_of_word:
+            if dict_of_word[word]["frequency"] > limit:
+                list_word_del.append(word)
+        for word in list_word_del:
+            del dict_of_word[word]
+        return dict_of_word
