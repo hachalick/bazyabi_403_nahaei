@@ -9,19 +9,25 @@ from classes.utils import UtilsIR
 from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet as wn
 
+# nltk.download('prunk')
 # nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger')
 
 
 class IRS:
-    stemmer = nltk.stem.PorterStemmer()
+    __stemmer = nltk.stem.PorterStemmer()
+    __lemmatizer = nltk.stem.WordNetLemmatizer()
     __func_utils = UtilsIR()
+    __number_of_row = -1
+    __filename = ""
 
-    def __init__(self, number_of_row: int):
+    def __init__(self, number_of_row: int, filename: str) -> None:
         """
-        :param number_of_row: int
+        :param number_of_row: int, number of rows to read from file
+        :param filename: str, in main directory
         """
-        self.number_of_row = number_of_row
+        self.__number_of_row = number_of_row
+        self.__filename = filename
 
     def __detected_word(self, word: str) -> str:
         """
@@ -44,17 +50,16 @@ class IRS:
     def __lemmatize_and_stem_word(self, word: str) -> str:
         """
         get any word and do the lemmatization and stemming on the word
-        :param word: str
-        :return: word of lemmatizing and stemming
+        :param word:str -> "is"
+        :return:str -> "be"
         """
         pos_wod = self.__detected_word(word)
         res_word = wn._morphy(word, pos_wod)
-        lemmatizer = nltk.stem.WordNetLemmatizer()
-        lemNoun = lemmatizer.lemmatize(word, pos=wn.NOUN)
-        lemVerb = lemmatizer.lemmatize(word, pos=wn.VERB)
-        lemAdj = lemmatizer.lemmatize(word, pos=wn.ADJ)
-        lemAdv = lemmatizer.lemmatize(word, pos=wn.ADV)
-        lemAdjS = lemmatizer.lemmatize(word, pos=wn.ADJ_SAT)
+        lemNoun = self.__lemmatizer.lemmatize(word, pos=wn.NOUN)
+        lemVerb = self.__lemmatizer.lemmatize(word, pos=wn.VERB)
+        lemAdj = self.__lemmatizer.lemmatize(word, pos=wn.ADJ)
+        lemAdv = self.__lemmatizer.lemmatize(word, pos=wn.ADV)
+        lemAdjS = self.__lemmatizer.lemmatize(word, pos=wn.ADJ_SAT)
         if len(res_word) > 0:
             word_lem = res_word.pop()
             if (lemNoun != lemVerb
@@ -62,9 +67,9 @@ class IRS:
                         and lemVerb == lemAdj
                         and lemAdv == lemAdv)
                     and not re.match(""".*le$""", word_lem)):
-                return self.stemmer.stem(word_lem)
+                return self.__stemmer.stem(word_lem)
             elif word_lem == word and pos_wod == wn.NOUN and re.match(""".*ing$""", word_lem):
-                return self.stemmer.stem(word_lem)
+                return self.__stemmer.stem(word_lem)
             else:
                 return word_lem
         else:
@@ -73,8 +78,8 @@ class IRS:
     def tokenizer(self, text: str) -> list:
         """
         get a text and tokenize it to list of word
-        :param text: str
-        :return: [ word, punctuation, ... ]
+        :param text:str -> "Grumpier ..."
+        :return:list -> [ word, punctuation, ... ]
         """
         wt = word_tokenize(text)
         for i in range(len(wt)):
@@ -84,6 +89,7 @@ class IRS:
             wt[i] = re.sub("""â€œ""", "", wt[i])
             wt[i] = re.sub("""â€¦""", "", wt[i])
             wt[i] = re.sub("""â€""", "", wt[i])
+            wt[i] = re.sub("""أ©""", "", wt[i])
             wt[i] = re.sub("""\\.$""", "", wt[i])
             wt[i] = re.sub("""^\\.""", "", wt[i])
             wt[i] = re.sub("""/$""", "", wt[i])
@@ -113,8 +119,8 @@ class IRS:
     def clean_word(self, list_of_words: list) -> list:
         """
         get list of words and remove punctuation indexes
-        :param list_of_words: list of str
-        :return: [ word, ... ]
+        :param list_of_words:list -> [ word, ... ]
+        :return:list -> [ word, ... ]
         """
         list_index_delete_from_list_of_word = []
         for i in range(len(list_of_words)):
@@ -194,73 +200,69 @@ class IRS:
     def generate_stopwords(self, list_of_words: list) -> dict:
         """
         get list of words and create dictionary of inner words list with frequency
-        :param list_of_words: list of str
-        :return: { word: frequency, ... }
+        :param list_of_words:list -> [ word, ... ]
+        :return:dict -> { word: frequency, ... }
         """
         list_of_words.sort()
         dic_of_words = {}
         for i in list_of_words:
-            1 if i not in dic_of_words else dic_of_words[i] += 1
+            dic_of_words[i] = 1 if i not in dic_of_words else dic_of_words[i] + 1
         return dic_of_words
 
-    def add_value_to_list(self, dict_token: dict) -> list:
-        new_list = []
-        for i in dict_token:
-            new_list.append(dict_token[i])
-        new_list = list(dict.fromkeys(new_list))
-        new_list.sort(reverse=True)
-        return new_list
-
-    def sort_dict(self, dict_token_no_sort: dict, arr_sort: list, out_of: int = -1) -> dict:
+    def sort_dict_token_based_list(self, dict_token: dict, arr_sort: list, limit_show: int = -1) -> dict:
         """
-        :param dict_token_no_sort:
-        :param arr_sort:
-        :param out_of:
+        get dictionary of token - frequency and sorted based list int with optional limit show
+        :param dict_token:dict -> { word: { frequency: 0, title: "...", plot: "...", }, ... }
+        :param arr_sort:list -> [ high, ..., low ]
+        :param limit_show:int -> -1: don't limit
         :return:
         """
-        new_dict = {}
+        show_dict = {}
+        del_dict = {}
         for i in arr_sort:
-            for j in dict_token_no_sort:
-                if out_of < 0 and dict_token_no_sort[j] == i:
-                    new_dict[j] = i
-                elif out_of >= i and dict_token_no_sort[j] == i:
-                    new_dict[j] = i
-        return new_dict
+            for j in dict_token:
+                if limit_show < 0 and dict_token[j] == i:
+                    show_dict[j] = i
+                elif limit_show >= i and dict_token[j] == i:
+                    show_dict[j] = i
+                elif limit_show < i and dict_token[j] == i:
+                    del_dict[j] = i
+        return {"deleted": del_dict, "showed": show_dict}
 
     def read_all_row(self) -> str:
         """
-        description:
-        Reading the lines of the file train.csv with the number of entered numbers
+        reading the lines of the filename with the number of entered numbers
         :return: "title1 plot1 title2 plot2 ..."
         "Grumpier Old Man A Family ...."
         """
         text = ""
-        with open('train.csv') as csv_file:
+        with open(self.__filename) as csv_file:
             csv_reader = csv.reader(csv_file)
             ite = 0
             for row in csv_reader:
-                """ jump from row with index 0 (name of column) """
                 if ite > 0:
-                    """ remove rate and popularity so worked with title and plot """
                     row = row[:-3]
-                    """ join name and plot in one string """
                     text += " ".join(row) + " "
-                    """ exit loop when ... """
-                    if ite == self.number_of_row + 1:
+                    if ite == self.__number_of_row + 1:
                         break
                 ite = ite + 1
             text = " ".join(text.split("-"))
         return text
 
     def read_title_and_plot(self, arr_of_exception: list = None) -> list:
+        """
+        reading the lines of the filename with the number of entered
+        :param arr_of_exception: [ row, ... ]
+        :return: [ { id: 0, title: "...", plot: "...", }, ... ]
+        """
         arr = []
-        with open('train.csv') as csv_file:
+        with open(self.__filename) as csv_file:
             csv_reader = csv.reader(csv_file)
             ite = 0
             if arr_of_exception is None:
                 for row in csv_reader:
                     arr.append({"id": ite-1, "title": row[0], "plot": row[1]})
-                    if ite == self.number_of_row:
+                    if ite == self.__number_of_row:
                         break
                     ite += 1
                 arr = arr[1:]
@@ -268,36 +270,53 @@ class IRS:
                 for row in csv_reader:
                     if ite-1 not in arr_of_exception or len(arr_of_exception) == 0:
                         arr.append({"id": ite-1, "title": row[0], "plot": row[1]})
-                    if ite == self.number_of_row:
+                    if ite == self.__number_of_row:
                         break
                     ite += 1
                 arr = arr[1:]
             return arr
 
-    def read_row_of_csv(self, id_row: int) -> dict:
-        id_row += 1
+    def read_row(self, row: int) -> dict:
+        """
+        read row from filename
+        :param row: 0
+        :return: { id: row, title: "...", plot: "...", }
+        """
+        row += 1
         film = {}
-        with open('train.csv') as csv_file:
+        with open(self.__filename) as csv_file:
             csv_reader = csv.reader(csv_file)
             ite = 0
             for row in csv_reader:
-                if ite == id_row:
+                if ite == row:
                     film = {"id": ite-1, "title": row[0], "plot": row[1]}
                     break
                 ite += 1
         return film
 
-    def tokenize_title_and_plot(self, list_dynamic: list) -> list:
-        for i in range(len(list_dynamic)):
-            token_title = self.tokenizer(list_dynamic[i]["title"])
+    def tokenize_title_and_plot(self, list_title_and_plot: list) -> list:
+        """
+        tokenize title and plot on list title and plot
+        :param list_title_and_plot:list -> [ { title: "...", plot: "...", }, ... ]
+        :return:list -> [ { title: [ token, ... ], plot: [ token, ... ], }, ... ]
+        """
+        for index in range(len(list_title_and_plot)):
+            token_title = self.tokenizer(list_title_and_plot[index]["title"])
             token_title_clean = self.clean_word(token_title)
-            list_dynamic[i]["title"] = token_title_clean
-            token_plot = self.tokenizer(list_dynamic[i]["plot"])
+            list_title_and_plot[index]["title"] = token_title_clean
+            token_plot = self.tokenizer(list_title_and_plot[index]["plot"])
             token_plot_clean = self.clean_word(token_plot)
-            list_dynamic[i]["plot"] = token_plot_clean
-        return list_dynamic
+            list_title_and_plot[index]["plot"] = token_plot_clean
+        return list_title_and_plot
 
     def posting_title_and_plot(self, list_dynamic: list) -> dict:
+        """
+        create posting list from list dict title and plot
+        :param list_dynamic: list -> [ { title: "...", plot: "...", } ]
+        :return: { word: { frequency: 0,
+                           title: [ { index_row: index_word_in_sense, ... }, ... ],
+                           plot : [ { index_row: index_word_in_sense, ... }, ... ], ... }
+        """
         all_list_title = []
         all_list_plot = []
         for i in range(len(list_dynamic)):
@@ -324,20 +343,24 @@ class IRS:
             all_dict_words[i]["frequency"] = len(all_dict_words[i]["title"]) + len(all_dict_words[i]["plot"])
         return all_dict_words
 
-    def edit_read_title_and_plot(self):
-        arr_of_indexes = [i for i in range(self.number_of_row)]
+    def merge_title_and_plot_file_user(self):
+        """
+        get id title plot for add and id for delete and merged on result posting list
+        :return:list -> [ { id: 0, title: "...", plot: "..." }, ... ]
+        """
+        arr_of_indexes = [i for i in range(self.__number_of_row)]
         arr_adding_indexes = []
         arr_deleting_indexes = []
         print("""\033[93mfor ending process positional living type "\033[4mexit()\033[0m\033[93m" and enter\033[0m
                 \r\033[95m1. add format:\033[0m
                 \rid, title, plot
-                \r\033[92m(exam:1, dars bazyabi etelaat, darsi shirin ke imani mehr tadris karde)\033[0m\n
+                \r\033[92m(exam: 1, title test, plot test)\033[0m\n
                 \r\033[95m2. delete format:\033[0m
                 \rid
-                \r\033[92m(exam:1)\033[0m\n""")
+                \r\033[92m(exam: 1)\033[0m\n""")
         while True:
-            print(arr_of_indexes)
-            input_text = input("enter => ")
+            print("list indexes:", arr_of_indexes)
+            input_text = self.__func_utils.get_input("str")
             print("\033[93m#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#\033[0m")
             if input_text == "exit()":
                 print("\033[91mprocess positional ended\033[0m")
@@ -358,7 +381,7 @@ class IRS:
                     for i in range(len(arr_of_indexes)):
                         if arr_of_indexes[i] == id_dataset:
                             del arr_of_indexes[i]
-                            arr_deleting_indexes.append(i)
+                            arr_deleting_indexes.append(id_dataset)
                             print("deleted", i)
                             break
                 else:
@@ -374,10 +397,17 @@ class IRS:
                 else:
                     print("not add")
         com_arr = self.read_title_and_plot(arr_deleting_indexes) + arr_adding_indexes
+        self.__func_utils.sort_list_of_dicts(com_arr, "id", False)
         return com_arr
 
     def change_list_dict_of_index_to_list_index(self, dict_of_word: dict):
-        """chang arr of obj to arr of index"""
+        """
+        get list of dict to create list of all index without frequency
+        :param dict_of_word: dict -> { word: { frequency: 0,
+                                       title: [ { index_row: index_word_in_sense, ... }, ... ],
+                                       plot : [ { index_row: index_word_in_sense, ... }, ... ], ... }
+        :return:list -> { word: [ index, ... ], ... }
+        """
         for i in dict_of_word:
             list_index_title = []
             list_index_plot = []
@@ -395,26 +425,41 @@ class IRS:
             dict_of_word[i] = clear_list_all_index
         return dict_of_word
 
-    def __vb_code(self, list_index: list) -> str:
+    def __vb_code(self, list_number: list) -> str:
+        """
+        calculate vb-code from list_number and return it in string format
+        :param list_number: list -> [ number, ... ]
+        :return: str -> "vb-code"
+        """
         vb_code = []
-        binary_number = self.__func_utils.int_to_binary(list_index[0], 7)
+        binary_number = self.__func_utils.int_to_binary(list_number[0], 7)
         vb_code.append(self.__func_utils.binary_to_vb_code(binary_number, 7))
-        for j in range(len(list_index[1:])):
-            index_after = list_index[j + 1]
-            index_before = list_index[j]
+        for j in range(len(list_number[1:])):
+            index_after = list_number[j + 1]
+            index_before = list_number[j]
             binary_number = self.__func_utils.int_to_binary(index_after - index_before, 7)
             vb_code.append(self.__func_utils.binary_to_vb_code(binary_number, 7))
         return "".join(vb_code)
 
     def vb_code(self, dict_of_word: dict) -> dict:
+        """
+        calculate vb-code from list indexes in dictionary of words and replace it with that list
+        :param dict_of_word: dict -> { word: [ number, ... ], ... }
+        :return: dict -> { word: "vb-code" , ... }
+        """
         dict_of_vb_code_word = {}
         for i in dict_of_word:
             dict_of_vb_code_word[i] = self.__vb_code(dict_of_word[i])
         return dict_of_vb_code_word
 
     def __g_code(self, number: int) -> str:
+        """
+        get number and calculate g-code from that number
+        :param number: int -> x > 0
+        :return: str -> "g-code"
+        """
         if number == 0:
-            return "0"
+            return ""
         length_g_code = ""
         number_of_one_length_g_code = int(math.log(number, 2))
         for i in range(number_of_one_length_g_code):
@@ -425,65 +470,90 @@ class IRS:
         return length_g_code + offset_g_code
 
     def g_code(self, dict_of_word: dict) -> dict:
+        """
+        calculate g-code from list indexes in dictionary of words and replace it with that list
+        :param dict_of_word: dict -> { word: [ number, ... ], ... }
+        :return: { word: "g-code" , ... }
+        """
         dict_of_g_code_word = {}
         for i in dict_of_word:
-            g_code = []
-            g_code.append(self.__g_code(dict_of_word[i][0]))
+            list_g_code = [self.__g_code(dict_of_word[i][0])]
             for j in range(len(dict_of_word[i][1:])):
                 index_after = dict_of_word[i][j + 1]
                 index_before = dict_of_word[i][j]
-                g_code.append(self.__g_code(index_after - index_before))
-            dict_of_g_code_word[i] = "".join(g_code)
+                list_g_code.append(self.__g_code(index_after - index_before))
+            dict_of_g_code_word[i] = "".join(list_g_code)
         return dict_of_g_code_word
 
-    def get_query(self) -> str:
-        text = input("enter: ")
-        return text
-
-    def find_bigrams(self, query: str, words: dict):
-        tokenize_user_query = self.tokenizer(query)
-        dict_word_matching_trigram = {}
-        for word in words:
-            dict_word_matching_trigram[word] = []
-            for word_query in tokenize_user_query:
+    def find_bigrams(self, tokenize_query: list, dict_of_words: dict):
+        """
+        get
+        :param tokenize_query: list -> [ word, ... ]
+        :param dict_of_words: { word: { frequency: 0,
+                                title: [ { index_row: index_word_in_sense, ... }, ... ],
+                                plot : [ { index_row: index_word_in_sense, ... }, ... ], ... }
+        :return: { word: [ bigram match on query, ... ], ... }
+        """
+        dict_word_matching_bigram = {}
+        for word in dict_of_words:
+            dict_word_matching_bigram[word] = []
+            for word_query in tokenize_query:
                 for bigrams in self.__func_utils.create_list_bigrams(word_query):
                     if re.match(bigrams, word) is not None:
-                        dict_word_matching_trigram[word].append(bigrams[2:4])
+                        dict_word_matching_bigram[word].append(bigrams[2:4])
         list_word_del = []
-        for word in dict_word_matching_trigram:
-            if len(dict_word_matching_trigram[word]) == 0:
+        for word in dict_word_matching_bigram:
+            if len(dict_word_matching_bigram[word]) == 0:
                 list_word_del.append(word)
         for i in list_word_del:
-            del dict_word_matching_trigram[i]
-        dict_rate_matching_trigram = {}
-        for i in dict_word_matching_trigram:
-            dict_rate_matching_trigram[len(dict_word_matching_trigram[i])] = {}
-        for i in dict_word_matching_trigram:
-            dict_rate_matching_trigram[len(dict_word_matching_trigram[i])][i] = dict_word_matching_trigram[i]
-        list_rate_number = list(dict_rate_matching_trigram)
+            del dict_word_matching_bigram[i]
+        return dict_word_matching_bigram
+
+    def dict_rating_bigrams(self, dict_of_words: dict):
+        dict_rate_matching_bigram = {}
+        for i in dict_of_words:
+            dict_rate_matching_bigram[len(dict_of_words[i])] = {}
+        for i in dict_of_words:
+            dict_rate_matching_bigram[len(dict_of_words[i])][i] = dict_of_words[i]
+        return dict_rate_matching_bigram
+
+    def jccard_and_editdistance(self, query: str, dict_rate_matching_bigram: dict, min_jacard: float = 0.0):
+        """
+        calculate jccard and editdistance
+        :param query: str -> "..."
+        :param dict_rate_matching_bigram:dict -> { word: score, ... }
+        :param min_jacard: float -> ignore words if jacard is less than min_jacard
+        :return:
+        """
+        list_rate_number = list(dict_rate_matching_bigram)
         list_rate_number.sort(reverse=True)
         list_jaccard_editdistance = []
-        for i in list_rate_number:
-            for j in dict_rate_matching_trigram[i]:
+        for rate in list_rate_number:
+            for j in dict_rate_matching_bigram[rate]:
                 bigrams_word = self.__func_utils.create_list_bigrams(j, False)
                 bigrams_query = self.__func_utils.create_list_bigrams(query, False)
-                eshterak = i
+                eshterak = rate
                 ejtema = len(self.__func_utils.remove_frequency_words_from_list(bigrams_word + bigrams_query))
-                jaccard = int((eshterak/ejtema)*100000)/1000
+                jaccard = int((int(eshterak)/int(ejtema))*100000)/1000
                 editdistance_word = editdistance.eval(query, j)
                 list_jaccard_editdistance.append({"word": j, "editdistance": editdistance_word, "jaccard": jaccard})
-        sorted_data = sorted(list_jaccard_editdistance, key=lambda x: x['jaccard'], reverse=True)
-        list_jaccard_editdistance.sort(key=lambda x: x['jaccard'])
-        min_jacard = 40
+        sort_list_jaccard_editdistance_base_jaccard = self.__func_utils.sort_list_of_dicts(list_jaccard_editdistance,
+                                                                                           "jaccard")
         list_top_jacard = []
-        for i in sorted_data:
+        for i in sort_list_jaccard_editdistance_base_jaccard:
             if i['jaccard'] > min_jacard:
                 list_top_jacard.append(i)
-        sorted_data = sorted(list_top_jacard, key=lambda x: x['editdistance'])
-        list_jaccard_editdistance.sort(key=lambda x: x['editdistance'])
-        print(sorted_data[0])
+        sort_list_jaccard_editdistance_base_editdistance = (
+            self.__func_utils.sort_list_of_dicts(list_jaccard_editdistance, "editdistance", False))
+        if len(sort_list_jaccard_editdistance_base_editdistance):
+            return sort_list_jaccard_editdistance_base_editdistance[0]
 
     def calculate_tf(self, list_of_words: list):
+        """
+        calculate tf from list of words
+        :param list_of_words: [ word, ... ]
+        :return:
+        """
         dict_of_words = {}
         for i in list_of_words:
             dict_of_words[i] = 0
@@ -492,9 +562,15 @@ class IRS:
         dict_tf = {}
         for i in dict_of_words:
             dict_tf[i] = math.log(dict_of_words[i]) + 1
+        print(dict_tf)
         return dict_tf
 
     def calculate_score(self, list_tf: list):
+        """
+        calculate score from list of words - tf
+        :param list_tf:
+        :return:
+        """
         list_score = []
         for i in list_tf:
             sum_score = 0
@@ -532,15 +608,20 @@ class IRS:
                 i["plot"][j] *= weight_tf
         return list_tf
 
-    def comparison_high_score(self, dict_score_title, dict_score_plot, max_number_of_return: int):
+    def top_high_score(self, dict_score_title, dict_score_plot, limit: int = -1):
+        """
+        get dictionary of title and score and return top high with limit
+        :param dict_score_title: dict ->
+        :param dict_score_plot:
+        :param limit:
+        :return:
+        """
         list_all_score = dict_score_title + dict_score_plot
-        sorted_data = sorted(list_all_score, key=lambda x: x['score'], reverse=True)
-        sorted_data.sort(key=lambda x: x['score'], reverse=True)
-        if len(sorted_data) > max_number_of_return:
-            return sorted_data[:max_number_of_return]
+        sorted_data_base_score = self.__func_utils.sort_list_of_dicts(list_all_score, "score")
+        if len(sorted_data_base_score) > limit:
+            return sorted_data_base_score[:limit]
         else:
-            return sorted_data
-
+            return sorted_data_base_score
 
     def remove_frequency_words(self):
         pass
