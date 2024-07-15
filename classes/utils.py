@@ -40,4 +40,54 @@ class UtilsIR:
                 list_k_gram.append(word[i:i+2])
         return list_k_gram
 
+    def get_list_int_value_from_dict(self, dict_word: dict, reverse: bool = True) -> list:
+        """
+        get dict of word - frequency and return list of frequencies without duplicates sorted from highest to lowest
+        :param dict_word: dict of tokens
+        :param reverse: bool, sort by frequency
+        :return: [ highest_frequency, ..., lowest_frequency ]
+        """
+        new_list = []
+        for i in dict_word:
+            new_list.append(dict_word[i])
+        new_list = list(dict.fromkeys(new_list))
+        new_list.sort(reverse=reverse)
+        return new_list
+
+    def get_input(self, type_input: str, text_input: str = "enter: ") -> str | int | float | bool:
+        """
+        set type of input and return a value with that type
+        :param type_input:str -> "str" | "int" | "float" | "bool"
+        :param text_input:str -> default "enter: "
+        :return: "" | 0 | 0.0 | True or False
+        """
+        print(type_input)
+        while True:
+            text = input(text_input)
+            if type_input == "str":
+                return text
+            elif type_input == "int":
+                try:
+                    return int(text)
+                except ValueError:
+                    print("invalid input -> int")
+            elif type_input == "float":
+                try:
+                    return float(text)
+                except ValueError:
+                    print("invalid input -> float")
+            elif type_input == "bool":
+                if text == "true" or text == "True" or text == "1":
+                    return True
+                elif text == "false" or text == "False" or text == "0":
+                    return False
+                else:
+                    print("invalid input -> bool")
+            else:
+                raise ValueError('get input have not type')
+
+    def sort_list_of_dicts(self, list_of_dicts: list[dict], base_key: str, reverse: bool = True) -> list[dict]:
+        sorted_data = sorted(list_of_dicts, key=lambda x: x[base_key], reverse=reverse)
+        list_of_dicts.sort(key=lambda x: x[base_key], reverse=reverse)
+        return sorted_data
 
