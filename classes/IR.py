@@ -562,7 +562,6 @@ class IRS:
         dict_tf = {}
         for i in dict_of_words:
             dict_tf[i] = math.log(dict_of_words[i]) + 1
-        print(dict_tf)
         return dict_tf
 
     def calculate_score(self, list_tf: list):
@@ -582,15 +581,16 @@ class IRS:
                 {"id": i["id"], "score": sum_score,
                  "title": i["title"],
                  "plot": i["plot"]})
-        sorted_data = sorted(list_score, key=lambda x: x['score'], reverse=True)
-        sorted_data.sort(key=lambda x: x['score'], reverse=True)
-        return sorted_data
+        sorted_data_base_score = self.__func_utils.sort_list_of_dicts(list_score, "score")
+        return sorted_data_base_score
 
     def create_list_title(self, query: list, list_dict_title_and_title: list, weight_tf: float = 1.0):
         list_tf = []
+        list_id = []
         for i in list_dict_title_and_title:
             for j in query:
-                if j in i["title"]:
+                if j in i["title"] and i["id"] not in list_id:
+                    list_id.append(i["id"])
                     list_tf.append({"id": i["id"], "title": self.calculate_tf(i["title"]), "plot": self.calculate_tf(i["plot"])})
         for i in list_tf:
             for j in i["title"]:
