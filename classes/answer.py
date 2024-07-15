@@ -93,9 +93,11 @@ class Answer:
         list_tokenize_title_and_plot = self.__ir_system.tokenize_title_and_plot(text_title_and_plot)
         # -- title
         query_title = self.__func_utils.get_input("str", "enter query title: ")
+        weight_query_plot = self.__func_utils.get_input("float", "enter weight title: ")
         # query_title = "casino heat babe the a"
         query_title_tokenized_plot = self.__ir_system.tokenizer(query_title)
-        list_title_tf = self.__ir_system.create_list_title(query_title_tokenized_plot, list_tokenize_title_and_plot)
+        list_title_tf = self.__ir_system.create_list_title(query_title_tokenized_plot, list_tokenize_title_and_plot,
+                                                           weight_query_plot)
         dict_score_title_tf = self.__ir_system.calculate_score(list_title_tf)
         # -- plot
         query_plot = self.__func_utils.get_input("str", "enter query plot: ")
@@ -103,5 +105,6 @@ class Answer:
         query_plot_tokenized_plot = self.__ir_system.tokenizer(query_plot)
         list_plot_tf = self.__ir_system.create_list_plot(query_plot_tokenized_plot, list_tokenize_title_and_plot)
         dict_score_plot_tf = self.__ir_system.calculate_score(list_plot_tf)
-        comparison_high_score = self.__ir_system.top_high_score(dict_score_title_tf, dict_score_plot_tf, -1)
+        limit_show = self.__func_utils.get_input("int", "enter limit: ")
+        comparison_high_score = self.__ir_system.top_high_score(dict_score_title_tf, dict_score_plot_tf, limit_show)
         print(comparison_high_score)
