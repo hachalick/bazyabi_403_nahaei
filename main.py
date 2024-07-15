@@ -1,10 +1,10 @@
 from classes.answer import Answer
 
-number_of_row = 3
+number_of_row = 50
 filename = "train.csv"
 answer_q = Answer(number_of_row, filename)
 # answer_q.q1()
-answer_q.q2()
+# answer_q.q2()
 # answer_q.q3()
 # answer_q.q4()
 # answer_q.q5()
