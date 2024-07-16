@@ -88,6 +88,11 @@ class Answer:
         print("\033[95manswer 6:\033[0m\n", top_word, "\n")
 
     def q7(self):
+        text_question = """\033[94mجستجو ترتیبدار در فضای برداری idf-tf به روش ltn-lnn انجام میشود
+        \rیک پرسمان title و یک پرسمان plot ورودی گرفته شده و هر کدام در بخش مربوطه از اسناد جستجو میشوند
+        \rامتیاز نهایی هر سند برابر با جمع وزندار امتیاز به دست آمده از جستجو در بخش title و plot است
+        \rدر نهایت اسناد برتر را نمایش دهید. تعداد حداکثر اسناد برتر نیز به عنوان ورودی داده میشود\033[0m"""
+        print(text_question)
         # -- text
         text_title_and_plot = self.__ir_system.read_title_and_plot()
         list_tokenize_title_and_plot = self.__ir_system.tokenize_title_and_plot(text_title_and_plot)
@@ -105,16 +110,20 @@ class Answer:
         dict_score_plot_tf = self.__ir_system.calculate_score(list_plot_tf)
         limit_show = self.__func_utils.get_input("int", "enter limit: ")
         comparison_high_score = self.__ir_system.top_high_score(dict_score_title_tf, dict_score_plot_tf, limit_show)
-        print(comparison_high_score)
+        print("\033[95manswer 7:\033[0m\n", comparison_high_score, "\n")
 
     def q8(self):
         text_title_and_plot = self.__ir_system.read_title_and_plot()
         list_tokenize_title_and_plot = self.__ir_system.tokenize_title_and_plot(text_title_and_plot)
+        text_question = """\033[94mبرای نمایش هر سند عالوه بر استفاده از شناسه و عنوان، یک هایالیت برای آن درست کنید
+        \rکلمات موجود در پرسمان را که باعث انتخاب سند شدهاند به همراه ۲-۳ term قبل و بعد از آن به عنوان هایالیت آن سند نمایش دهید\033[0m"""
+        print(text_question)
         query_title_and_plot = self.__func_utils.get_input("str", "enter query: ")
         query_title_and_plot_tokenized = self.__ir_system.tokenizer(query_title_and_plot)
         list_title_tf = self.__ir_system.create_list_tf_title_and_plot(query_title_and_plot_tokenized,
                                                                        list_tokenize_title_and_plot)
         dict_score_title_tf = self.__ir_system.calculate_score(list_title_tf)
+        print("\n\033[95manswer 8:\033[0m")
         for high_score in dict_score_title_tf:
             title_and_plot_row = self.__ir_system.read_row(high_score["id"])
             self.__ir_system.find_word_in_row(query_title_and_plot, title_and_plot_row)
