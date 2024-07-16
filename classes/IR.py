@@ -9,7 +9,7 @@ from classes.utils import UtilsIR
 from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet as wn
 
-# nltk.download('prunk')
+# nltk.download('prunkt')
 # nltk.download('wordnet')
 # nltk.download('averaged_perceptron_tagger')
 
@@ -276,19 +276,19 @@ class IRS:
                 arr = arr[1:]
             return arr
 
-    def read_row(self, row: int) -> dict:
+    def read_row(self, row_id: int) -> dict:
         """
         read row from filename
-        :param row: 0
+        :param row_id: int -> 0
         :return: { id: row, title: "...", plot: "...", }
         """
-        row += 1
+        row_id += 1
         film = {}
         with open(self.__filename) as csv_file:
             csv_reader = csv.reader(csv_file)
             ite = 0
             for row in csv_reader:
-                if ite == row:
+                if ite == row_id:
                     film = {"id": ite-1, "title": row[0], "plot": row[1]}
                     break
                 ite += 1
@@ -489,9 +489,9 @@ class IRS:
         """
         get
         :param tokenize_query: list -> [ word, ... ]
-        :param dict_of_words: { word: { frequency: 0,
-                                title: [ { index_row: index_word_in_sense, ... }, ... ],
-                                plot : [ { index_row: index_word_in_sense, ... }, ... ], ... }
+        :param dict_of_words:dict -> { word: { frequency: 0,
+                                       title: [ { index_row: index_word_in_sense, ... }, ... ],
+                                       plot : [ { index_row: index_word_in_sense, ... }, ... ], ... }
         :return: { word: [ bigram match on query, ... ], ... }
         """
         dict_word_matching_bigram = {}
@@ -584,10 +584,23 @@ class IRS:
         sorted_data_base_score = self.__func_utils.sort_list_of_dicts(list_score, "score")
         return sorted_data_base_score
 
-    def create_list_title(self, query: list, list_dict_title_and_title: list, weight_tf: float = 1.0):
+    def create_list_tf_title(self, query: list, list_dict_title_and_plot: list, weight_tf: float = 1.0):
+        """
+        create list of dict id and tf - title and tf of plot from list of words tokenize query and list of dict id and
+        list tokenize title and list tokenize plot on titles and plot
+        :param weight_tf: float -> 1.0
+        :param query: list[str] -> [ word-tokenize-query, ... ]
+        :param list_dict_title_and_plot: list[dict] -> { word: { frequency: 0,
+                                                         title: [ { index_row: index_word_in_sense, ... }, ... ],
+                                                         plot : [ { index_row: index_word_in_sense, ... }, ... ], ... }
+        :return: [ { id: 0,
+                     score: 0.0,
+                     title: { word: tf, ... },
+                     plot : { word: tf, ... }, } ... ]
+        """
         list_tf = []
         list_id = []
-        for i in list_dict_title_and_title:
+        for i in list_dict_title_and_plot:
             for j in query:
                 if j in i["title"] and i["id"] not in list_id:
                     list_id.append(i["id"])
@@ -597,23 +610,65 @@ class IRS:
                 i["title"][j] *= weight_tf
         return list_tf
 
-    def create_list_plot(self, query: list, list_dict_title_and_plot: list, weight_tf: float = 1.0):
+    def create_list_tf_plot(self, query: list, list_dict_title_and_plot: list, weight_tf: float = 1.0):
+        """
+        create list of dict id and tf - title and tf of plot from list of words tokenize query and list of dict id and
+        list tokenize title and list tokenize plot on plot
+        :param weight_tf: float -> 1.0
+        :param query: list[str] -> [ word-tokenize-query, ... ]
+        :param list_dict_title_and_plot: list[dict] -> { word: { frequency: 0,
+                                                         title: [ { index_row: index_word_in_sense, ... }, ... ],
+                                                         plot : [ { index_row: index_word_in_sense, ... }, ... ], ... }
+        :return: [ { id: 0,
+                     score: 0.0,
+                     title: { word: tf, ... },
+                     plot : { word: tf, ... }, } ... ]
+        """
         list_tf = []
+        list_id = []
         for i in list_dict_title_and_plot:
             for j in query:
-                if j in i["plot"]:
+                if j in i["plot"] and i["id"] not in list_id:
+                    list_id.append(i["id"])
                     list_tf.append({"id": i["id"], "title": self.calculate_tf(i["title"]), "plot": self.calculate_tf(i["plot"])})
         for i in list_tf:
             for j in i["plot"]:
                 i["plot"][j] *= weight_tf
         return list_tf
 
+    def create_list_tf_title_and_plot(self, query: list[str], list_dict_title_and_plot: list[dict]):
+        """
+        create list of dict id and tf - title and tf of plot from list of words tokenize query and list of dict id and
+        list tokenize title and list tokenize plot on titles and plot
+        :param query: list[str] -> [ word-tokenize-query, ... ]
+        :param list_dict_title_and_plot: list[dict] -> { word: { frequency: 0,
+                                                         title: [ { index_row: index_word_in_sense, ... }, ... ],
+                                                         plot : [ { index_row: index_word_in_sense, ... }, ... ], ... }
+        :return: [ { id: 0,
+                     score: 0.0,
+                     title: { word: tf, ... },
+                     plot : { word: tf, ... }, } ... ]
+        """
+        list_tf = []
+        list_id = []
+        for i in list_dict_title_and_plot:
+            for j in query:
+                if j in i["title"] and i["id"] not in list_id:
+                    list_id.append(i["id"])
+                    list_tf.append({"id": i["id"], "title": self.calculate_tf(i["title"]), "plot": self.calculate_tf(i["plot"])})
+        for i in list_dict_title_and_plot:
+            for j in query:
+                if j in i["plot"] and i["id"] not in list_id:
+                    list_id.append(i["id"])
+                    list_tf.append({"id": i["id"], "title": self.calculate_tf(i["title"]), "plot": self.calculate_tf(i["plot"])})
+        return list_tf
+
     def top_high_score(self, dict_score_title, dict_score_plot, limit: int = -1):
         """
         get dictionary of title and score and return top high with limit
         :param dict_score_title: dict ->
-        :param dict_score_plot:
-        :param limit:
+        :param dict_score_plot: dict ->
+        :param limit: int -> from -1 to up
         :return:
         """
         list_all_score = dict_score_title + dict_score_plot
@@ -623,5 +678,38 @@ class IRS:
         else:
             return sorted_data_base_score
 
-    def remove_frequency_words(self):
-        pass
+    def find_word_in_row(self, query: str, title_and_plot: dict):
+        """
+        f
+        :param query:str -> "..."
+        :param title_and_plot:dict -> { id: 0, title: "...", plot: "...", }
+        :return:
+        """
+        split_query = query.split(" ")
+        split_title = title_and_plot["title"].split(" ")
+        split_plot = title_and_plot["plot"].split(" ")
+        for word in split_query:
+            tokenize_word = self.tokenizer(word)
+            if len(tokenize_word) == 1:
+                self.__find_words_in_list(tokenize_word[0], split_title)
+                self.__find_words_in_list(tokenize_word[0], split_plot)
+        title_and_plot["title"] = " ".join(split_title)
+        title_and_plot["plot"] = " ".join(split_plot)
+
+    def __find_words_in_list(self, word: str, list_doc: list):
+        for index_word_text in range(len(list_doc)):
+            tokenize_text = self.tokenizer(list_doc[index_word_text])
+            cleaned_text = self.clean_word(tokenize_text)
+            if len(cleaned_text) == 1:
+                if cleaned_text[0] == word:
+                    if index_word_text - 1 >= 0 and not re.match("^\033.*", list_doc[index_word_text-1]):
+                        list_doc[index_word_text-1] = self.__func_utils.color_text(list_doc[index_word_text-1])
+                    if index_word_text + 1 < len(list_doc) and not re.match("^\033.*", list_doc[index_word_text+1]):
+                        list_doc[index_word_text+1] = self.__func_utils.color_text(list_doc[index_word_text+1])
+                    if index_word_text - 2 >= 0 and not re.match("^\033.*", list_doc[index_word_text-2]):
+                        list_doc[index_word_text-2] = self.__func_utils.color_text(list_doc[index_word_text-2])
+                    if index_word_text + 2 < len(list_doc) and not re.match("^\033.*", list_doc[index_word_text+2]):
+                        list_doc[index_word_text+2] = self.__func_utils.color_text(list_doc[index_word_text+2])
+                    list_doc[index_word_text] = self.__func_utils.color_text(list_doc[index_word_text])
+
+
