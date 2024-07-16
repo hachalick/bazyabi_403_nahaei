@@ -99,3 +99,9 @@ class UtilsIR:
         for word in list_word_del:
             del dict_of_word[word]
         return dict_of_word
+
+    def color_text(self, text: str) -> str:
+        return f"\033[92m{text}\033[0m"
+
+    def underline_text(self, text: str) -> str:
+        return f"\033[4m{text}\033[0m"
