@@ -94,17 +94,31 @@ class Answer:
         # -- title
         query_title = self.__func_utils.get_input("str", "enter query title: ")
         weight_query_plot = self.__func_utils.get_input("float", "enter weight title: ")
-        # query_title = "casino heat babe the a"
         query_title_tokenized_plot = self.__ir_system.tokenizer(query_title)
-        list_title_tf = self.__ir_system.create_list_title(query_title_tokenized_plot, list_tokenize_title_and_plot,
-                                                           weight_query_plot)
+        list_title_tf = self.__ir_system.create_list_tf_title(query_title_tokenized_plot, list_tokenize_title_and_plot,
+                                                              weight_query_plot)
         dict_score_title_tf = self.__ir_system.calculate_score(list_title_tf)
         # -- plot
         query_plot = self.__func_utils.get_input("str", "enter query plot: ")
-        # query_plot = "family"
         query_plot_tokenized_plot = self.__ir_system.tokenizer(query_plot)
-        list_plot_tf = self.__ir_system.create_list_plot(query_plot_tokenized_plot, list_tokenize_title_and_plot)
+        list_plot_tf = self.__ir_system.create_list_tf_plot(query_plot_tokenized_plot, list_tokenize_title_and_plot)
         dict_score_plot_tf = self.__ir_system.calculate_score(list_plot_tf)
         limit_show = self.__func_utils.get_input("int", "enter limit: ")
         comparison_high_score = self.__ir_system.top_high_score(dict_score_title_tf, dict_score_plot_tf, limit_show)
         print(comparison_high_score)
+
+    def q8(self):
+        text_title_and_plot = self.__ir_system.read_title_and_plot()
+        list_tokenize_title_and_plot = self.__ir_system.tokenize_title_and_plot(text_title_and_plot)
+        query_title_and_plot = self.__func_utils.get_input("str", "enter query: ")
+        query_title_and_plot_tokenized = self.__ir_system.tokenizer(query_title_and_plot)
+        list_title_tf = self.__ir_system.create_list_tf_title_and_plot(query_title_and_plot_tokenized,
+                                                                       list_tokenize_title_and_plot)
+        dict_score_title_tf = self.__ir_system.calculate_score(list_title_tf)
+        for high_score in dict_score_title_tf:
+            title_and_plot_row = self.__ir_system.read_row(high_score["id"])
+            self.__ir_system.find_word_in_row(query_title_and_plot, title_and_plot_row)
+            print("id:   ", title_and_plot_row["id"])
+            print("title:", title_and_plot_row["title"])
+            print("plot: ", title_and_plot_row["plot"])
+            print()
